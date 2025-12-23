@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrics website</title>
+    
+    <!-- Audio element - place song.mp3 in the same folder as this HTML file -->
+    <audio id="songAudio" preload="auto">
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Stars and Moon Background */
+        .night-sky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite, moveStars 60s linear infinite;
+        }
+
+        .shooting-star {
+            position: absolute;
+            background: linear-gradient(to right, white, transparent);
+            height: 2px;
+            border-radius: 50%;
+            animation: shootingStar 3s ease-in infinite;
+        }
+
+        .moon {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 50px;
+            right: 100px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+            animation: moonGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes moveStars {
+            0% {
+                transform: translateX(0) translateY(0);
+            }
+            100% {
+                transform: translateX(-100px) translateY(50px);
+            }
+        }
+
+        @keyframes shootingStar {
+            0% {
+                opacity: 1;
+                transform: translateX(0) translateY(0) rotate(-45deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(300px) translateY(300px) rotate(-45deg);
+            }
+        }
+
+        @keyframes moonGlow {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        .container {
+            z-index: 2;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .lyrics {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .lyrics p {
+            color: #fff;
+            line-height: 2;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            min-height: 1.5em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .lyrics p:first-child {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .timestamp {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85em;
+            margin-left: 10px;
+            font-weight: 300;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #fff;
+            margin-left: 2px;
+            animation: blink 0.7s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Envelope Styles */
+        .envelope-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: linear-gradient(135deg, #fff9e6, #ffe6cc);
+            border: 2px solid #9955BB;
+            border-radius: 5px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .envelope:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope.opening {
+            animation: envelopeOpen 1s ease-out forwards;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(135deg, #9955BB, #9955BB);
+            border: 2px solid #9955BB;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            transform-origin: top center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.6s ease;
+        }
+
+        .envelope.opening .envelope-flap {
+            transform: rotateX(180deg);
+        }
+
+        .envelope-content {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .open-message {
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+
+        .open-message p {
+            margin: 0;
+            color: #000000;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(119, 118, 118, 0.5);
+        }
+
+        @keyframes envelopeOpen {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+                pointer-events: none;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                max-width: 95%;
+                padding: 0 10px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            .lyrics {
+                padding: 25px;
+                border-radius: 15px;
+            }
+
+            .lyrics p {
+                font-size: 0.95em;
+                line-height: 1.8;
+                margin-bottom: 12px;
+            }
+
+            .lyrics p:first-child {
+                font-size: 1em;
+            }
+
+            .timestamp {
+                font-size: 0.75em;
+                margin-left: 5px;
+            }
+
+            .envelope {
+                width: 250px;
+                height: 170px;
+            }
+
+            .moon {
+                width: 70px;
+                height: 70px;
+                top: 30px;
+                right: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            h1 {
+                font-size: 1.4em;
+                margin-bottom: 15px;
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            }
+
+            .lyrics {
+                padding: 15px;
+                border-radius: 10px;
+                max-height: 70vh;
+                overflow-y: auto;
+            }
+
+            .lyrics p {
+                font-size: 0.85em;
+                line-height: 1.6;
+                margin-bottom: 10px;
+            }
+
+            .lyrics p:first-child {
+                font-size: 0.9em;
+                margin-bottom: 15px;
+            }
+
+            .timestamp {
+                font-size: 0.7em;
+                margin-left: 3px;
+            }
+
+            .envelope {
+                width: 220px;
+                height: 150px;
+            }
+
+            .open-message p {
+                font-size: 14px;
+            }
+
+            .moon {
+                width: 60px;
+                height: 60px;
+                top: 20px;
+                right: 20px;
+            }
+
+            .envelope-wrapper {
+                min-height: auto;
+                padding: 20px 0;
+            }
+        }
+
+        @media (max-width: 360px) {
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .lyrics {
+                padding: 12px;
+            }
+
+            .lyrics p {
+                font-size: 0.8em;
+            }
+
+            .envelope {
+                width: 200px;
+                height: 140px;
+            }
+
+            .moon {
+                width: 50px;
+                height: 50px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="night-sky">
+        <div class="moon"></div>
+    </div>
+
+    <div class="container">
+        <h1>Wala na siyang error dahil sa pampagana!!</h1>
+        
+        <!-- Envelope -->
+        <div class="envelope-wrapper">
+            <div class="envelope" id="envelope">
+                <div class="envelope-flap"></div>
+                <div class="envelope-content">
+                    <div class="open-message">
+                        <p>✨ Open this ✨</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lyrics (hidden until envelope opens) -->
+        <div class="lyrics" id="lyricsContainer" style="display: none;">
+            <!-- TIMESTAMP GUIDE: Edit the timestamp values inside <span class="timestamp">TIME</span> -->
+            <!-- Format: MM:SS (example: 0:00, 1:23, 2:45) -->
+            <p><span class="timestamp">Kalapastanganan by fitterkarma</span></p>
+            <p>Mamamatay akong nakangiti, 
+            kapag Ikaw ang nasa aking tabi.
+            Mabubuhay akong nagsisisi, 
+            kapag 'sang araw hindi kita mapapangiti<span class="timestamp">(love you!!)</span></p>
+
+            <p>Kalapastangan ang 'di Ka ibigin, 
+            kalokohan ang 'di Ka isipin.
+            Kung ang mundo ay biglang gugunawin, 
+            ikaw ang una kong hahanapin<span class="timestamp">(totoo 'yan, love!!)</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Create stars
+        const nightSky = document.querySelector('.night-sky');
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            
+            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            star.style.animationDelay = Math.random() * 2 + 's';
+            
+            nightSky.appendChild(star);
+        }
+
+        // Create shooting stars
+        function createShootingStar() {
+            const shootingStar = document.createElement('div');
+            shootingStar.className = 'shooting-star';
+            
+            const length = Math.random() * 100 + 50;
+            shootingStar.style.width = length + 'px';
+            
+            shootingStar.style.left = Math.random() * 100 + '%';
+            shootingStar.style.top = Math.random() * 50 + '%';
+            
+            shootingStar.style.animationDuration = (Math.random() * 1.5 + 1.5) + 's';
+            shootingStar.style.animationDelay = Math.random() * 0.5 + 's';
+            
+            nightSky.appendChild(shootingStar);
+            
+            // Remove shooting star after animation
+            setTimeout(() => {
+                shootingStar.remove();
+            }, 4000);
+        }
+
+        // Spawn shooting stars every 2-4 seconds
+        setInterval(createShootingStar, Math.random() * 2000 + 2000);
+
+        // --- TEMPO-BASED TYPING LOGIC ---
+        const BPM = 80; // The tempo for Kalapastanganan
+        const msPerBeat = 60000 / BPM; 
+        // We use 1/8th note speed for typing (characters per half-beat)
+        const typingSpeed = msPerBeat / 8;
+
+        function typeWriter(element, text, speed, callback = null) {
+            let index = 0;
+            element.innerHTML = '';
+            
+            function type() {
+                if (index < text.length) {
+                    element.innerHTML += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const envelope = document.getElementById('envelope');
+            const envelopeWrapper = document.querySelector('.envelope-wrapper');
+            const lyricsContainer = document.getElementById('lyricsContainer');
+            const paragraphs = lyricsContainer.querySelectorAll('p');
+            
+            // Handle envelope click
+            envelope.addEventListener('click', function() {
+                envelope.classList.add('opening');
+                
+                // Play the audio when envelope opens
+                const audio = document.getElementById('songAudio');
+                audio.play().catch(function(error) {
+                    console.log("Audio playback error:", error);
+                });
+                
+                // Hide envelope wrapper and show lyrics after animation
+                setTimeout(() => {
+                    envelopeWrapper.style.display = 'none';
+                    lyricsContainer.style.display = 'block';
+                    lyricsContainer.style.animation = 'fadeInUp 0.8s ease-out';
+                    startTypingAnimation(paragraphs);
+                }, 600);
+            });
+            
+            console.log("Lyrics page loaded with envelope interaction");
+        });
+
+        function startTypingAnimation(paragraphs) {
+            // Store original content and clear display immediately
+            const paragraphData = [];
+            paragraphs.forEach((p) => {
+                const timestamp = p.querySelector('.timestamp');
+                let timestampHTML = '';
+                
+                if (timestamp) {
+                    timestampHTML = timestamp.outerHTML;
+                    timestamp.remove();
+                }
+                
+                paragraphData.push({
+                    element: p,
+                    text: p.innerHTML,
+                    timestamp: timestampHTML
+                });
+                
+                p.innerHTML = ''; // Clear immediately
+            });
+            
+            let currentDelay = 500; // Initial wait before starting
+
+            paragraphData.forEach((data, index) => {
+                setTimeout(() => {
+                    typeWriter(data.element, data.text, typingSpeed, () => {
+                        if (data.timestamp) {
+                            data.element.innerHTML += data.timestamp;
+                        }
+                    });
+                }, currentDelay);
+                
+                // Advance the delay based on the number of characters
+                currentDelay += data.text.length * typingSpeed + 1200;
+            });
+        }
+    </script>
+</body>
+</html>
